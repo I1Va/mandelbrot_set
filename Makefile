@@ -7,5 +7,5 @@ BUILD_DIR = build
 .PHONY: build
 
 all:
-	g++ $(CSRS) -o ./$(BUILD_DIR)/$(OUTFILE)
+	g++ -O2 $(CSRS) -o ./$(BUILD_DIR)/$(OUTFILE)
 	./$(BUILD_DIR)/$(OUTFILE)
