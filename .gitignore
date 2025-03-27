@@ -1,3 +1,4 @@
 build*
 inc*
 docs*
+compile_commands.json
