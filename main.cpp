@@ -10,7 +10,7 @@ const int SCREEN_HEIGHT = 600;
 
 int main () {
     tx_window_info_t tx_window_info = create_tx_window(SCREEN_WIDTH, SCREEN_HEIGHT);
-    display_into_t display_info = display_init(tx_window_info, SCALE_DEFAULT, -SCREEN_WIDTH / 2.0f, -SCREEN_HEIGHT / 2.0f);
+    display_info_t display_info = display_init(tx_window_info, SCALE_DEFAULT, -SCREEN_WIDTH / 2.0f, -SCREEN_HEIGHT / 2.0f);
 
     for (;;) {
         update_display_info(&display_info);
@@ -21,7 +21,7 @@ int main () {
         }
         // display_without_optimizations(&display_info);
         // display_with_array_optimization(&display_info);
-        display_with_intrinsik_optimization(&display_info);
+        display_with_intrinsic_optimization(&display_info);
     }
 
     return 0;
