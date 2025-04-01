@@ -40,7 +40,7 @@ CDEBFLAGS = -DDEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-lo
 -Wstack-protector -fcheck-new -fsized-deallocation -fstack-protector -fstrict-overflow -flto-odr-type-merging\
 -fno-omit-frame-pointer -Wlarger-than=8192 -Wstack-usage=8192 -pie -fPIE -Werror=vla\
 
-SANITIZER_FLAGS = -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,$\
+SANITIZER_FLAGS = -fsanitize=address,alignment,bool,bounds,enum,double-cast-overflow,double-divide-by-zero,$\
 integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,$\
 shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 

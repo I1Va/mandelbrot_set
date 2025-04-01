@@ -19,8 +19,8 @@ int main () {
         if (display_info.terminate_state) {
             break;
         }
-
-        display(&display_info);
+        // display_without_optimizations(&display_info);
+        display_with_array_optimization(&display_info);
     }
 
     return 0;
