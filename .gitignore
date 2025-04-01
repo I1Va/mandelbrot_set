@@ -2,3 +2,6 @@ build*
 docs*
 compile_commands.json
 debug*
+test.cpp
+*.exe
+*.out

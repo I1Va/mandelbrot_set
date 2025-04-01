@@ -27,8 +27,11 @@ CFLAGS ?= -O2 -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloa
 	-Wcast-qual -Wconversion -Wctor-dtor-privacy -Wempty-body -Wformat-security -Wformat=2 \
 	-Wignored-qualifiers -Wlogical-op -Wno-missing-field-initializers -Wnon-virtual-dtor   \
 	-Woverloaded-virtual -Wpointer-arith -Wsign-promo -Wstack-usage=8192 -Wstrict-aliasing \
-	-Wstrict-null-sentinel -Wtype-limits -Wwrite-strings #-Werror
+	-Wstrict-null-sentinel -Wtype-limits -Wwrite-strings \
+	-msse4.1 -mavx2
 
+
+TEST_CFLAGS +=
 CDEBFLAGS = -DDEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations \
 -Wc++14-compat -Wmissing-declarations -Wcast-align -Wcast-qual -Wchar-subscripts -Wconditionally-supported \
 -Wconversion -Wctor-dtor-privacy -Wempty-body -Wfloat-equal -Wformat-nonliteral -Wformat-security \
@@ -53,7 +56,6 @@ COMMONINC = -I./inc
 SRC = ./src
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST)))) #path to makefile
 
-CFLAGS += -msse4.1 -mavx2
 
 ifeq ($(MODE),DEBUG)
 	CFLAGS = $(CDEBFLAGS)
@@ -66,22 +68,10 @@ endif
 override CFLAGS += $(COMMONINC) # CFLAGS - environment variable. We can change it using only override, but not +=, :=, =
 
 #There are src folder files. We can use wildcard $(SRC_DIR)/*.cpp, but it isn't a good manner
-CSRC = main.cpp src/display_funcs.cpp
-
-#/---------------------------SUBMODULES--------------------\#
-SUBMODULES =
-COMMONINC += $(addsuffix /inc,-I./$(SUBMODULES))
-CSRC += $(wildcard $(addsuffix /src,$(SUBMODULES))/*.cpp)
-#/---------------------------SUBMODULES--------------------\#
-
+CSRC = main.cpp src/display_funcs.cpp src/args_proc.cpp
 
 
 COBJ := $(addprefix $(OUT_O_DIR)/,$(CSRC:.cpp=.o))
-
-
-
-
-
 
 
 
@@ -120,11 +110,29 @@ clean:
 	@rm -rf $(COBJ) $(DEPS) $(OUT_O_DIR)/*.out $(OUT_O_DIR)/*.log $(OUT_O_DIR)/*.exe
 
 launch:
-	./$(OUT_O_DIR)/$(OUTFILE_NAME)
+	./$(OUT_O_DIR)/$(OUTFILE_NAME) -O=intrinsic
 
-
+test:
+	@$(CC) -msse4.1 -mavx2 test.cpp -o test.out
+	@./test.out
 
 NODEPS = clean
+
+#================================================TESTING=======================================================
+TEST_CFLAGS =
+
+TEST_CFLAGS += -msse4.1 -mavx2
+
+TEST_DIR = tests
+TEST_BUILD_DIR = build
+
+complile_all_versions:
+	$(CC) $(CFLAGS) -Og $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/Og_mandelbrot_set.exe
+	$(CC) $(CFLAGS) -O2 $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/O2_mandelbrot_set.exe
+	$(CC) $(CFLAGS) -Ofast $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/Ofast_mandelbrot_set.exe
+#================================================TESTING=======================================================
+
+
 
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS)))) # if we use make clean, we shouldn't include $(DEPS)
 include $(DEPS) # if header was changed, src cpp would compile again, to remake preprocessing with changed header
