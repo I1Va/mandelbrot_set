@@ -4,7 +4,7 @@
 #include <string.h>
 
 const int MAX_ITERATIONS_CNT = 500;
-const double  STABLE_RADIUS = 16;
+const float  STABLE_RADIUS = 16;
 const int    COLOR_MAX_VAL = 255;
 
 const int VK_Z = 0x5A;
@@ -43,5 +43,6 @@ tx_window_info_t create_tx_window(const int screen_width, const int screen_heigh
 
 void display_without_optimizations(display_into_t *display_info);
 void display_with_array_optimization(display_into_t *display_info);
+void display_with_intrinsik_optimization(display_into_t *display_info);
 
 #endif // DISPPAY_FUNCS_H

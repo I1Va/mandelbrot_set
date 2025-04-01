@@ -20,7 +20,8 @@ int main () {
             break;
         }
         // display_without_optimizations(&display_info);
-        display_with_array_optimization(&display_info);
+        // display_with_array_optimization(&display_info);
+        display_with_intrinsik_optimization(&display_info);
     }
 
     return 0;

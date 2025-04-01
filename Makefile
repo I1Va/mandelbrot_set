@@ -53,6 +53,8 @@ COMMONINC = -I./inc
 SRC = ./src
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST)))) #path to makefile
 
+CFLAGS += -msse4.1 -mavx2
+
 ifeq ($(MODE),DEBUG)
 	CFLAGS = $(CDEBFLAGS)
 	OUT_O_DIR = debug
