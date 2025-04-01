@@ -24,6 +24,8 @@ typedef struct {
     int duration;
     char optimization[MAX_CONFIG_NAME_SIZE];
     char mode[MAX_CONFIG_NAME_SIZE];
+    int draw_enable;
+    int runs;
 } config_t;
 
 display_function_t choose_display_function(config_t *config);

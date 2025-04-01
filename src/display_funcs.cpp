@@ -6,27 +6,25 @@
 
 __m128 stable_radius_vec4 = _mm_set1_ps((float) STABLE_RADIUS * 2);
 
-
-void cords_scale(display_info_t *display_info, double delta_scale) {
+void move_cords(display_info_t *display_info, int dx, int dy) {
     assert(display_info);
 
-    double old_scale = display_info->scale;
-    double new_scale = old_scale * delta_scale;
+    display_info->offset_x += dx * display_info->scale;
+    display_info->offset_y += dy * display_info->scale;
+}
 
-    int screen_width = display_info->tx_window_info.screen_width;
-    int screen_height = display_info->tx_window_info.screen_height;
+void zoom_cords(display_info_t *display_info, double scale, int anch_x, int anch_y) {
+    assert(display_info);
 
+    double real_x = display_info->offset_x + anch_x * display_info->scale;
+    double real_y = display_info->offset_y + anch_y * display_info->scale;
 
-    int     anchor_pixel_x = screen_width / 2;
-    int     anchor_pixel_y = screen_height / 2;
+    double new_scale = display_info->scale * scale;
 
-    double  anchor_real_x = (anchor_pixel_x + display_info->dx * screen_width) * old_scale + display_info->x_origin;
-    double  anchor_real_y = (anchor_pixel_y + display_info->dy * screen_height) * old_scale + display_info->y_origin;
+    display_info->offset_x = real_x - anch_x * new_scale;
+    display_info->offset_y = real_y - anch_y * new_scale;
 
     display_info->scale = new_scale;
-
-    display_info->x_origin = anchor_real_x - (anchor_pixel_x + display_info->dx * screen_width) * new_scale;
-    display_info->y_origin = anchor_real_y - (anchor_pixel_y + display_info->dy * screen_height) * new_scale;
 }
 
 void update_display_info(display_info_t *display_info) {
@@ -38,49 +36,44 @@ void update_display_info(display_info_t *display_info) {
     }
 
     if (GetAsyncKeyState(VK_LEFT)) {
-        display_info->x_origin -= CORD_DELTA * display_info->scale;
-        display_info->dx -= CORD_DELTA;
+        move_cords(display_info, -CORD_DELTA, 0);
         txSleep(KEY_PROC_SLEEP);
     }
 
     if (GetAsyncKeyState(VK_RIGHT)) {
-        display_info->x_origin += CORD_DELTA * display_info->scale;
-        display_info->dx += CORD_DELTA;
+        move_cords(display_info, CORD_DELTA, 0);
         txSleep(KEY_PROC_SLEEP);
     }
 
     if (GetAsyncKeyState(VK_UP)) {
-        display_info->y_origin -= CORD_DELTA * display_info->scale;
-        display_info->dy -= CORD_DELTA;
+        move_cords(display_info, 0, -CORD_DELTA);
         txSleep(KEY_PROC_SLEEP);
     }
 
     if (GetAsyncKeyState(VK_DOWN)) {
-        display_info->y_origin = CORD_DELTA * display_info->scale;
-        display_info->dy += CORD_DELTA;
+        move_cords(display_info, 0, CORD_DELTA);
         txSleep(KEY_PROC_SLEEP);
     }
 
     if (GetAsyncKeyState(VK_Z)) {
-        cords_scale(display_info, SCALE_COEF);
+        zoom_cords(display_info, SCALE_COEF, display_info->tx_window_info.screen_width / 2, display_info->tx_window_info.screen_height / 2);
         txSleep(KEY_PROC_SLEEP);
     }
     if (GetAsyncKeyState(VK_X)) {
-        cords_scale(display_info, 1 / SCALE_COEF);
+        zoom_cords(display_info, 1 / SCALE_COEF, display_info->tx_window_info.screen_width / 2, display_info->tx_window_info.screen_height / 2);
         txSleep(KEY_PROC_SLEEP);
     }
-
 }
 
-display_info_t display_init(tx_window_info_t tx_window_info, const double scale, const double x_origin, const double y_origin) {
+display_info_t display_init(tx_window_info_t tx_window_info, const double scale, const double offset_x, const double offset_y) {
 
     display_info_t display_info = {};
 
     display_info.tx_window_info = tx_window_info;
 
     display_info.scale      = scale;
-    display_info.x_origin   = x_origin;
-    display_info.y_origin   = y_origin;
+    display_info.offset_x   = offset_x;
+    display_info.offset_y   = offset_y;
 
     return display_info;
 }
@@ -112,14 +105,14 @@ void put_canvas_dot(display_info_t *display_info, int ix, int iy, int iterations
     *((RGBQUAD*) (display_info->tx_window_info.video_mem) + (ix + (display_info->tx_window_info.screen_height - iy - 1) * display_info->tx_window_info.screen_width)) = rgb;
 }
 
-void display_without_optimizations(display_info_t *display_info) {
+void display_without_optimizations(display_info_t *display_info, bool draw_enable) {
     assert(display_info);
 
     for (int iy = 0; iy < display_info->tx_window_info.screen_height; iy++) {
-        double y0 = (iy + display_info->dy * display_info->tx_window_info.screen_width) * display_info->scale + display_info->y_origin;
+        double y0 = display_info->offset_y + iy * display_info->scale;
 
         for (int ix = 0; ix < display_info->tx_window_info.screen_width; ix++) {
-            double x0 = (ix + display_info->dx * display_info->tx_window_info.screen_height) * display_info->scale + display_info->x_origin;
+            double x0 = display_info->offset_x + ix * display_info->scale;
 
             double x = 0;
             double y = 0;
@@ -138,20 +131,21 @@ void display_without_optimizations(display_info_t *display_info) {
 
                 iters++;
             }
-
-            put_canvas_dot(display_info, ix, iy, iters);
+            if (draw_enable) {
+                put_canvas_dot(display_info, ix, iy, iters);
+            }
         }
     }
 }
 
-void display_with_array_optimization(display_info_t *display_info) {
+void display_with_array_optimization(display_info_t *display_info, bool draw_enable) {
     assert(display_info);
 
     for (int iy = 0; iy < display_info->tx_window_info.screen_height; iy++) {
-        double y0 = (iy + display_info->dy * display_info->tx_window_info.screen_width) * display_info->scale + display_info->y_origin;
+        double y0 = display_info->offset_y + iy * display_info->scale;
 
         for (int ix = 0; ix < display_info->tx_window_info.screen_width; ix+=4) {
-            double x0 = (ix + display_info->dx * display_info->tx_window_info.screen_height) * display_info->scale + display_info->x_origin;
+            double x0 = display_info->offset_x + ix * display_info->scale;
             double dx = display_info->scale;
 
             double x0_arr4[4] = {x0, x0 + dx, x0 + 2 * dx, x0 + 3 * dx};
@@ -208,20 +202,24 @@ void display_with_array_optimization(display_info_t *display_info) {
             }
 
             for (int i = 0; i < 4; i++) {
-                put_canvas_dot(display_info, ix, iy, iters_arr4[i]);
+                if (draw_enable) {
+                    put_canvas_dot(display_info, ix, iy, iters_arr4[i]);
+                }
+
             }
         }
     }
 }
 
-void display_with_intrinsic_optimization(display_info_t *display_info) {
+void display_with_intrinsic_optimization(display_info_t *display_info, bool draw_enable) {
     assert(display_info);
     for (int iy = 0; iy < display_info->tx_window_info.screen_height; iy++) {
-        float y0 = (float) ((iy + display_info->dy * display_info->tx_window_info.screen_width) * display_info->scale + display_info->y_origin);
+        float y0 = (float) (display_info->offset_y + iy * display_info->scale);
+
         __m128 y0_vec4 = _mm_set1_ps(y0);
 
         for (int ix = 0; ix < display_info->tx_window_info.screen_width; ix+=4) {
-            float x0 = (float) ((ix + display_info->dx * display_info->tx_window_info.screen_height) * display_info->scale + display_info->x_origin);
+            float x0 = (float) (display_info->offset_x + ix * display_info->scale);
             float dx = (float) display_info->scale;
 
             __m128 x0_vec4 = _mm_set_ps(x0 + 3 * dx, x0 + 2 * dx, x0 + dx, x0);
@@ -274,7 +272,9 @@ void display_with_intrinsic_optimization(display_info_t *display_info) {
             iters_arr4[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(iters_vec4, _MM_SHUFFLE(0, 0, 0, 3)));
 
             for (int i = 0; i < 4; i++) {
-                put_canvas_dot(display_info, ix + i, iy, iters_arr4[i]);
+                if (draw_enable) {
+                    put_canvas_dot(display_info, ix + i, iy, iters_arr4[i]);
+                }
             }
         }
     }

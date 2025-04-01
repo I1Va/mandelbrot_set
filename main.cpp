@@ -13,6 +13,9 @@ const int SCREEN_HEIGHT = 600;
 int main (const int argc, const char *argv[]) {
     config_t config = {};
     config.duration = -1;
+    config.runs = 1;
+    config.draw_enable = 1;
+
 
     scan_argv(&config, argc, argv);
 
@@ -35,17 +38,10 @@ int main (const int argc, const char *argv[]) {
         if (display_info.terminate_state) {
             break;
         }
-        display_function(&display_info);
 
-
-        // #ifdef INTRINSIC_OPTIMIZATION
-        //     display_with_intrinsic_optimization(&display_info);
-        // #elif ARR_OPTIMIZATION
-        //     display_with_array_optimization(&display_info);
-        // #else
-        //     display_without_optimizations(&display_info);
-        // #endif
-
+        for (int i = 0; i < config.runs; i++) {
+            display_function(&display_info, config.draw_enable);
+        }
     }
 
     return 0;
