@@ -9,21 +9,23 @@
 
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 600;
+const int OFFSET_X = -3;
+const int OFFSET_Y = -2;
 
 int main (const int argc, const char *argv[]) {
     config_t config = {};
     config.duration = -1;
     config.runs = 1;
     config.draw_enable = 1;
-
-
     scan_argv(&config, argc, argv);
 
-    tx_window_info_t tx_window_info = create_tx_window(SCREEN_WIDTH, SCREEN_HEIGHT);
-    display_info_t display_info = display_init(tx_window_info, SCALE_DEFAULT, -3, -2);
+    tx_window_info_t tx_window_info = {};
+    if (config.draw_enable) {
+        tx_window_info = create_tx_window(SCREEN_WIDTH, SCREEN_HEIGHT);
+    }
+    display_info_t display_info = display_init(tx_window_info, SCALE_DEFAULT, OFFSET_X, OFFSET_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     clock_t start = clock();
-
 
     display_function_t display_function = choose_display_function(&config);
 

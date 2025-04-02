@@ -56,24 +56,26 @@ void update_display_info(display_info_t *display_info) {
     }
 
     if (GetAsyncKeyState(VK_Z)) {
-        zoom_cords(display_info, SCALE_COEF, display_info->tx_window_info.screen_width / 2, display_info->tx_window_info.screen_height / 2);
+        zoom_cords(display_info, SCALE_COEF, display_info->screen_width / 2, display_info->screen_height / 2);
         txSleep(KEY_PROC_SLEEP);
     }
     if (GetAsyncKeyState(VK_X)) {
-        zoom_cords(display_info, 1 / SCALE_COEF, display_info->tx_window_info.screen_width / 2, display_info->tx_window_info.screen_height / 2);
+        zoom_cords(display_info, 1 / SCALE_COEF, display_info->screen_width / 2, display_info->screen_height / 2);
         txSleep(KEY_PROC_SLEEP);
     }
 }
 
-display_info_t display_init(tx_window_info_t tx_window_info, const double scale, const double offset_x, const double offset_y) {
+display_info_t display_init(tx_window_info_t tx_window_info, const double scale, const double offset_x, const double offset_y, int screen_width, int screen_height) {
 
     display_info_t display_info = {};
 
     display_info.tx_window_info = tx_window_info;
 
-    display_info.scale      = scale;
-    display_info.offset_x   = offset_x;
-    display_info.offset_y   = offset_y;
+    display_info.scale          = scale;
+    display_info.offset_x       = offset_x;
+    display_info.offset_y       = offset_y;
+    display_info.screen_width   = screen_width;
+    display_info.screen_height  = screen_height;
 
     return display_info;
 }
@@ -81,9 +83,6 @@ display_info_t display_init(tx_window_info_t tx_window_info, const double scale,
 tx_window_info_t create_tx_window(const int screen_width, const int screen_height) {
     tx_window_info_t tx_window_info = {};
     txCreateWindow(screen_width, screen_height);
-
-    tx_window_info.screen_width = screen_width;
-    tx_window_info.screen_height = screen_height;
     tx_window_info.video_mem = (void *) txVideoMemory();
 
     return tx_window_info;
@@ -102,16 +101,16 @@ void put_canvas_dot(display_info_t *display_info, int ix, int iy, int iterations
         (BYTE) (blue_coef * 255)
     };
 
-    *((RGBQUAD*) (display_info->tx_window_info.video_mem) + (ix + (display_info->tx_window_info.screen_height - iy - 1) * display_info->tx_window_info.screen_width)) = rgb;
+    *((RGBQUAD*) (display_info->tx_window_info.video_mem) + (ix + (display_info->screen_height - iy - 1) * display_info->screen_width)) = rgb;
 }
 
 void display_without_optimizations(display_info_t *display_info, bool draw_enable) {
     assert(display_info);
 
-    for (int iy = 0; iy < display_info->tx_window_info.screen_height; iy++) {
+    for (int iy = 0; iy < display_info->screen_height; iy++) {
         double y0 = display_info->offset_y + iy * display_info->scale;
 
-        for (int ix = 0; ix < display_info->tx_window_info.screen_width; ix++) {
+        for (int ix = 0; ix < display_info->screen_width; ix++) {
             double x0 = display_info->offset_x + ix * display_info->scale;
 
             double x = 0;
@@ -141,10 +140,10 @@ void display_without_optimizations(display_info_t *display_info, bool draw_enabl
 void display_with_array_optimization(display_info_t *display_info, bool draw_enable) {
     assert(display_info);
 
-    for (int iy = 0; iy < display_info->tx_window_info.screen_height; iy++) {
+    for (int iy = 0; iy < display_info->screen_height; iy++) {
         double y0 = display_info->offset_y + iy * display_info->scale;
 
-        for (int ix = 0; ix < display_info->tx_window_info.screen_width; ix+=4) {
+        for (int ix = 0; ix < display_info->screen_width; ix+=4) {
             double x0 = display_info->offset_x + ix * display_info->scale;
             double dx = display_info->scale;
 
@@ -213,12 +212,12 @@ void display_with_array_optimization(display_info_t *display_info, bool draw_ena
 
 void display_with_intrinsic_optimization(display_info_t *display_info, bool draw_enable) {
     assert(display_info);
-    for (int iy = 0; iy < display_info->tx_window_info.screen_height; iy++) {
+    for (int iy = 0; iy < display_info->screen_height; iy++) {
         float y0 = (float) (display_info->offset_y + iy * display_info->scale);
 
         __m128 y0_vec4 = _mm_set1_ps(y0);
 
-        for (int ix = 0; ix < display_info->tx_window_info.screen_width; ix+=4) {
+        for (int ix = 0; ix < display_info->screen_width; ix+=4) {
             float x0 = (float) (display_info->offset_x + ix * display_info->scale);
             float dx = (float) display_info->scale;
 

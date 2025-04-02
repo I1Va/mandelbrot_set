@@ -110,7 +110,7 @@ clean:
 	@rm -rf $(COBJ) $(DEPS) $(OUT_O_DIR)/*.out $(OUT_O_DIR)/*.log $(OUT_O_DIR)/*.exe
 
 launch:
-	./$(OUT_O_DIR)/$(OUTFILE_NAME) -O=intrinsic --runs=1 --graphics=1
+	./$(OUT_O_DIR)/$(OUTFILE_NAME) -O=intrinsic --runs=1 --graphics=0
 
 test:
 	@$(CC) -msse4.1 -mavx2 test.cpp -o test.out

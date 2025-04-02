@@ -19,8 +19,6 @@ const double SCALE_DEFAULT = 1.0f / 180.0f;
 const double CORD_DELTA = 100;
 
 typedef struct {
-    int screen_width;
-    int screen_height;
     void *video_mem;
 } tx_window_info_t;
 
@@ -32,6 +30,9 @@ typedef struct {
     double offset_x, offset_y;
     double scale;
 
+    int screen_width;
+    int screen_height;
+
 } display_info_t;
 
 typedef void (*display_function_t) (display_info_t *display_info, bool draw_enable);
@@ -40,7 +41,9 @@ void move_cords(display_info_t *display_info, int dx, int dy);
 void zoom_cords(display_info_t *display_info, double scale, int anch_x, int anch_y);
 
 void update_display_info(display_info_t *display_info);
-display_info_t display_init(tx_window_info_t tx_window_info, const double scale, const double x_origin, const double y_origin);
+display_info_t display_init(tx_window_info_t tx_window_info, const double scale,
+    const double x_origin, const double y_origin, int screen_width, int screen_height);
+
 tx_window_info_t create_tx_window(const int screen_width, const int screen_height);
 
 void put_canvas_dot(display_info_t *display_info, int ix, int iy, int iterations);
