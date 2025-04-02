@@ -61,8 +61,9 @@ ifeq ($(MODE),DEBUG)
 	CFLAGS = $(CDEBFLAGS)
 	OUT_O_DIR = debug
 	EXTRA_FLAGS = $(SANITIZER_FLAGS)
+else
+	CFLAGS += -DNDEBUG
 endif
-
 
 
 override CFLAGS += $(COMMONINC) # CFLAGS - environment variable. We can change it using only override, but not +=, :=, =
@@ -110,7 +111,7 @@ clean:
 	@rm -rf $(COBJ) $(DEPS) $(OUT_O_DIR)/*.out $(OUT_O_DIR)/*.log $(OUT_O_DIR)/*.exe
 
 launch:
-	./$(OUT_O_DIR)/$(OUTFILE_NAME) -O=intrinsic --runs=1 --graphics=0
+	./$(OUT_O_DIR)/$(OUTFILE_NAME) -O=no-intrinsic --runs=1 --graphics=1
 
 test:
 	@$(CC) -msse4.1 -mavx2 test.cpp -o test.out
@@ -119,17 +120,16 @@ test:
 NODEPS = clean
 
 #================================================TESTING=======================================================
-TEST_CFLAGS =
+TEST_CFLAGS = -msse4.1 -mavx2 -DNDEBUG -I./inc
 
-TEST_CFLAGS += -msse4.1 -mavx2
-
-TEST_DIR = tests
-TEST_BUILD_DIR = build
+TEST_DIR = .
+TEST_BUILD_DIR = .
 
 complile_all_versions:
-	$(CC) $(CFLAGS) -Og $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/Og_mandelbrot_set.exe
-	$(CC) $(CFLAGS) -O2 $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/O2_mandelbrot_set.exe
-	$(CC) $(CFLAGS) -Ofast $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/Ofast_mandelbrot_set.exe
+	@mkdir -p $(TEST_DIR)/$(TEST_BUILD_DIR)
+	$(CC) $(TEST_CFLAGS) -Og $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/Og_mandelbrot_set.exe
+	$(CC) $(TEST_CFLAGS) -O2 $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/O2_mandelbrot_set.exe
+	$(CC) $(TEST_CFLAGS) -Ofast $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/Ofast_mandelbrot_set.exe
 #================================================TESTING=======================================================
 
 
