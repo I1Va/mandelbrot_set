@@ -112,7 +112,6 @@ void display_without_optimizations(display_info_t *display_info, bool draw_enabl
 
         for (int ix = 0; ix < display_info->screen_width; ix++) {
             double x0 = display_info->offset_x + ix * display_info->scale;
-
             double x = 0;
             double y = 0;
             double x2 = 0;
@@ -137,7 +136,7 @@ void display_without_optimizations(display_info_t *display_info, bool draw_enabl
     }
 }
 
-#define ARR_SZ 8
+#define ARR_SZ 4
 void display_with_array_optimization(display_info_t *display_info, bool draw_enable) {
     assert(display_info);
 
