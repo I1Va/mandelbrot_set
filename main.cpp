@@ -1,9 +1,11 @@
+#include <TXLib.h>
+
 #include <math.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <time.h>
 
-#include "TXLib.h"
+
 #include "mandelbrot_set/display_funcs.h"
 #include "mandelbrot_set/args_proc.h"
 

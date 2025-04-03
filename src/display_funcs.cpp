@@ -1,13 +1,13 @@
+#include <TXLib.h>
 #include <math.h>
 #include <immintrin.h>
 
 #include "mandelbrot_set/display_funcs.h"
-#include "TXLib.h"
 
 #define min(a, b)  (((a) < (b)) ? (a) : (b))
 
 __m128 stable_radius_vec4 = _mm_set1_ps((float) STABLE_RADIUS * 2);
-const double stable_radius_arr4[4] = {STABLE_RADIUS, STABLE_RADIUS, STABLE_RADIUS, STABLE_RADIUS};
+const float stable_radius_arr4[4] = {STABLE_RADIUS, STABLE_RADIUS, STABLE_RADIUS, STABLE_RADIUS};
 
 void move_cords(display_info_t *display_info, int dx, int dy) {
     assert(display_info);
@@ -144,21 +144,21 @@ void display_with_array_optimization(display_info_t *display_info, bool draw_ena
     assert(display_info);
 
     for (int iy = 0; iy < display_info->screen_height; iy++) {
-        double y0 = display_info->offset_y + iy * display_info->scale;
+        float y0 = (float) (display_info->offset_y + iy * display_info->scale);
 
         for (int ix = 0; ix < display_info->screen_width; ix+=4) {
-            double x0 = display_info->offset_x + ix * display_info->scale;
-            double dx = display_info->scale;
+            float x0 = (float) (display_info->offset_x + ix * display_info->scale);
+            float dx = (float) display_info->scale;
 
-            double x0_arr4[4] = {x0, x0 + dx, x0 + 2 * dx, x0 + 3 * dx};
-            double y0_arr4[4] = {y0, y0, y0, y0};
+            float x0_arr4[4] = {x0, x0 + dx, x0 + 2 * dx, x0 + 3 * dx};
+            float y0_arr4[4] = {y0, y0, y0, y0};
 
-            double x_arr4[4]         = {0, 0, 0, 0};
-            double y_arr4[4]         = {0, 0, 0, 0};
-            double x2_arr4[4]        = {0, 0, 0, 0};
-            double y2_arr4[4]        = {0, 0, 0, 0};
-            double xy_arr4[4]        = {0, 0, 0, 0};
-            double abs_arr4[4]       = {0, 0, 0, 0};
+            float x_arr4[4]         = {0, 0, 0, 0};
+            float y_arr4[4]         = {0, 0, 0, 0};
+            float x2_arr4[4]        = {0, 0, 0, 0};
+            float y2_arr4[4]        = {0, 0, 0, 0};
+            float xy_arr4[4]        = {0, 0, 0, 0};
+            float abs_arr4[4]       = {0, 0, 0, 0};
 
             int iters_arr4[4]       = {0, 0, 0, 0};
             int dots_state_arr4[4]  = {1, 1, 1, 1};
