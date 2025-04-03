@@ -10,7 +10,7 @@ CSRC = main.cpp src/display_funcs.cpp src/args_proc.cpp
 # #================================================TESTING=======================================================
 TEST_CFLAGS = -msse4.2 -mavx2 -DNDEBUG -I./inc
 TEST_DIR = .
-TEST_BUILD_DIR = .
+TEST_BUILD_DIR = tests
 
 complile_all_versions:
 	$(CC) $(TEST_CFLAGS) -Og $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/Og_mandelbrot_set.exe

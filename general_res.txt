@@ -1,0 +1,36 @@
+O2_mandelbrot_set.exe 'array optimization'
+: 41.88215630434783
+
+O2_mandelbrot_set.exe 'without optimization'
+: 8.532242857142858
+
+O2_mandelbrot_set.exe 'intrinsic optimization'
+: 58.56542856060608
+
+O2_mandelbrot_set.exe 'intrinsic unroll 2 optimization'
+: 97.90259115044252
+
+Ofast_mandelbrot_set.exe 'array optimization'
+: 12.069848
+
+Ofast_mandelbrot_set.exe 'without optimization'
+: 8.181082333333334
+
+Ofast_mandelbrot_set.exe 'intrinsic optimization'
+: 51.84438386363637
+
+Ofast_mandelbrot_set.exe 'intrinsic unroll 2 optimization'
+: 97.23500243697478
+
+Og_mandelbrot_set.exe 'array optimization'
+: 2.450440625
+
+Og_mandelbrot_set.exe 'without optimization'
+: 7.853005
+
+Og_mandelbrot_set.exe 'intrinsic optimization'
+: 54.49733524590164
+
+Og_mandelbrot_set.exe 'intrinsic unroll 2 optimization'
+: 87.53273614999999
+
