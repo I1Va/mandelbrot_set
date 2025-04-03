@@ -51,5 +51,6 @@ void put_canvas_dot(display_info_t *display_info, int ix, int iy, int iterations
 void display_without_optimizations(display_info_t *display_info, bool draw_enable);
 void display_with_array_optimization(display_info_t *display_info, bool draw_enable);
 void display_with_intrinsic_optimization(display_info_t *display_info, bool draw_enable);
+void display_with_intrinsic_optimization_unroll_2(display_info_t *display_info, bool draw_enable);
 
 #endif // DISPPAY_FUNCS_H

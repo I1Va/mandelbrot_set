@@ -20,6 +20,10 @@ display_function_t choose_display_function(config_t *config) {
         printf("intrinsic optimization\n");
         return display_with_intrinsic_optimization;
     }
+    if (strcmp(config->optimization, "unroll_2") == 0) {
+        printf("intrinsic unroll 2 optimization\n");
+        return display_with_intrinsic_optimization_unroll_2;
+    }
     printf("without optimization\n");
     return display_without_optimizations;
 }
