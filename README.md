@@ -135,6 +135,8 @@ for (int i = 0; i < 4; i++) {
 ```
 
 #### 3.2.2 `n=4`, `-O2 -msse4.2 -mavx2 -DNDEBUG`
+#### Godbolt link : https://godbolt.org/z/srGcGs1bG
+
 - При `-O2` компилятор свел работу с массивами и циклами по 4 к работе с мультимедийными регистрами xmm, что способствовало повешению производительности (до `25.23 fps`)
 ```c++
 for (int i = 0; i < 4; i++) {
@@ -150,6 +152,8 @@ vblendvps       xmm15, xmm4, xmm15, xmm2
 ```
 
 #### 3.2.3 `n=4`, `-Ofast -msse4.2 -mavx2 -DNDEBUG`
+#### Godbolt link : https://godbolt.org/z/Ebof5n7sT
+
 - При `-Ofast` к моему удивлению производительность снизилась. Это связано с тем, что компилятор решил отказаться от мультимедийных регистров в пользу развертывания цикла и выполнения инструкций в приятной конвейеру независимой по данным последовательности инструкций. Производительность ~ `21.29 fps`
 
 
@@ -207,6 +211,8 @@ for (int i = 0; i < 4; i++) {
 ```
 
 #### 3.2.3 `n=8`, `-O2 -msse4.2 -mavx2 -DNDEBUG`
+#### Godbolt link : https://godbolt.org/z/cEod8bKzh
+
 В предыдущих пунктах рассматривась `массивная реализации длины 4`. Проведя тесты для длины 4, 8, 16, 32, 64, 128 я выяснил, что наибольшее ускорение дает `массивная реализация длины 8` с флагом компиляции `-O2`. Проанализировав асемблерный код, я выяснил, что это значительное ускорение достигается засчет использования мультимедийных операций над регистрами ymm. Производительность ~ `41.88 fps`
 
 
@@ -227,9 +233,12 @@ for (int i = 0; i < 4; i++) {
 
 
 ### 3.2.1 Анализ трансляции функции `display` с `intrinsics`
+#### Godbolt link : https://godbolt.org/z/vdfjnqdrW
+
 Аналогично реализации с массивной оптимизации длины 8, реализация с intrinsics при компиляции с флагом `-O2` использует мультимедийные регистры AVX ymm. Но несмотря на данное сходство, производительность реализации с intrinsics составляет ~ `58.47 fps`. Это связано с тем, что реализация с intrinsics гарантированно раскрывается в мультимедийные операции, а также генерирует меньше асемблерных инструкций (проверил в godbolt).
 
 ### 3.2.2 Изучение реализации с intrinsics unroll 2
+#### Godbolt link : https://godbolt.org/z/xshWc8fsW
 А что если совместить использование AVX регистров в intrinsic, развертку циклов и скомпилировать с флагом оптимизации `-O2`? Получится производительность (~ `94.69 fps`).
 
 ### 3.3.2 Итоговые результаты
@@ -242,6 +251,37 @@ for (int i = 0; i < 4; i++) {
 | Массивная (n=8)                 | 2.45          | **41.88**| 12.07            | **41.88** |
 | Intrinsics (AVX)                | 54.50    | **58.57**| 51.84    | **58.57** |
 | Intrinsics (VX) + Unroll 2x          | 87.53    | **97.90**| 97.24    | **97.90** |
+
+
+## Результаты измерений производительности (Tiks per frame)
+```txt
+without optimization <-Og >                     : 214596322.5
+array optimization <-Og >                       : 423173687.6363636
+intrinsic optimization <-Og >                   : 40583346.10958904
+intrinsic unroll 2 optimization <-Og >          : 23889622.29090909
+without optimization <-Og -mtune=native>        : 217037824.47692308
+array optimization <-Og -mtune=native>          : 411877046.0
+intrinsic optimization <-Og -mtune=native>      : 41177095.905982904
+intrinsic unroll 2 <-Og -mtune=native>          : 23563271.0918197
+without optimization <-O2 >                     : 196043521.8108108
+array optimization <-O2 >                       : 83720154.51162791
+intrinsic optimization <-O2 >                   : 42039479.931428574
+intrinsic unroll 2 optimization <-O2 >          : 23740674.1197411
+without optimization <-O2 -mtune=native>        : 192617975.47887325
+array optimization <-O2 -mtune=native>          : 83571444.94186047
+intrinsic optimization <-O2 -mtune=native>      : 42162470.68945869
+intrinsic unroll 2 <-O2 -mtune=native>          : 24300669.402356904
+without optimization <-Ofast >                  : 190283988.8
+array optimization <-Ofast >                    : 108377087.15151516
+intrinsic optimization <-Ofast >                : 40040790.51373626
+intrinsic unroll 2 optimization <-Ofast >       : 22314385.721212123
+without optimization <-Ofast -mtune=native>     : 194300895.22972974
+array optimization <-Ofast -mtune=native>       : 106334383.3925926
+intrinsic optimization <-Ofast -mtune=native>   : 40704549.300578035
+intrinsic unroll 2 <-Ofast -mtune=native>       : 22246187.80151515
+```
+
+
 
 ### 4. Вывод
 - Были рассмотрены различные реализации функций построения множества Мандельброта.

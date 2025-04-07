@@ -21,23 +21,15 @@ int main (const int argc, const char *argv[]) {
     config.draw_enable = 1;
     scan_argv(&config, argc, argv);
 
-    tx_window_info_t tx_window_info = {};
-
-    if (config.draw_enable) {
-        tx_window_info = create_tx_window(SCREEN_WIDTH, SCREEN_HEIGHT);
-    }
-    calc_info_t calc_info = display_init(tx_window_info, SCALE_DEFAULT, OFFSET_X, OFFSET_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
+    calc_info_t calc_info = display_init({}, SCALE_DEFAULT, OFFSET_X, OFFSET_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
     calc_function_t calc_function = choose_calc_function(&config);
 
     clock_t start = clock();
     int *iters_matrix = (int *) calloc(calc_info.screen_height * calc_info.screen_width, sizeof(int));
 
     for (;;) {
-        double frame_start = clock();
-        update_display_info(&calc_info);
-
-        if (calc_info.terminate_state ||
-            ((clock() - start) / CLOCKS_PER_SEC > config.duration && config.duration > 0)) {
+        uint64_t frame_start_ticks = __rdtsc();
+        if ((clock() - start) / CLOCKS_PER_SEC > config.duration && config.duration > 0) {
             break;
         }
 
@@ -45,12 +37,9 @@ int main (const int argc, const char *argv[]) {
             calc_function(&calc_info, iters_matrix);
         }
 
-        display(&calc_info, iters_matrix, default_color_func);
-
-        double frame_end = clock();
-        double duration = (frame_end - frame_start);
-        printf("FPS %lf\t\t\r", CLOCKS_PER_SEC / (float) durations_ticks);
-
+        uint64_t frame_end_ticks = __rdtsc();
+        uint64_t durations_ticks = (frame_end_ticks - frame_start_ticks);
+        printf("%llu\n", durations_ticks);
     }
 
     free(iters_matrix);

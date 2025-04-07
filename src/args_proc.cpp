@@ -37,6 +37,7 @@ void scan_argv(config_t *config, const int argc, const char *argv[]) {
         {"-m", "--mode", "%s", &config->mode},
         {"-g", "--graphics", "%d", &config->draw_enable},
         {"-r", "--runs", "%d", &config->runs},
+        {"-o", "--output", "%s", &config->output_file},
     };
 
     size_t n_options = sizeof(options) / sizeof(opt_data);

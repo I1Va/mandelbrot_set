@@ -130,7 +130,6 @@ void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_f
             int iterations = *(iters_matrix + (ix + (calc_info->screen_height - iy - 1) * calc_info->screen_width));
 
             color_t color = color_func(iterations);
-            normalize_color(&color);
 
             RGBQUAD rgb =
             {   (BYTE) (color.red),

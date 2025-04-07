@@ -22,10 +22,12 @@ typedef struct {
 
 typedef struct {
     int duration;
-    char optimization[MAX_CONFIG_NAME_SIZE];
-    char mode[MAX_CONFIG_NAME_SIZE];
     int draw_enable;
     int runs;
+
+    char optimization[MAX_CONFIG_NAME_SIZE] = {};
+    char mode[MAX_CONFIG_NAME_SIZE] = {};
+    char output_file[MAX_CONFIG_NAME_SIZE] = {};
 } config_t;
 
 calc_function_t choose_calc_function(config_t *config);
