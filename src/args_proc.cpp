@@ -11,21 +11,21 @@
 #include "mandelbrot_set\args_proc.h"
 #include "mandelbrot_set\general.h"
 
-display_function_t choose_display_function(config_t *config) {
+calc_function_t choose_calc_function(config_t *config) {
     if (strcmp(config->optimization, "array") == 0) {
         printf("array optimization\n");
-        return display_with_array_optimization;
+        return calc_with_array_optimization;
     }
     if (strcmp(config->optimization, "intrinsic") == 0) {
         printf("intrinsic optimization\n");
-        return display_with_intrinsic_optimization;
+        return calc_with_intrinsic_optimization;
     }
     if (strcmp(config->optimization, "unroll_2") == 0) {
         printf("intrinsic unroll 2 optimization\n");
-        return display_with_intrinsic_optimization_unroll_2;
+        return calc_with_intrinsic_optimization_unroll_2;
     }
     printf("without optimization\n");
-    return display_without_optimizations;
+    return calc_without_optimizations;
 }
 
 void scan_argv(config_t *config, const int argc, const char *argv[]) {

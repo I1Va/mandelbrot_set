@@ -22,31 +22,39 @@ int main (const int argc, const char *argv[]) {
     scan_argv(&config, argc, argv);
 
     tx_window_info_t tx_window_info = {};
+
     if (config.draw_enable) {
         tx_window_info = create_tx_window(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
-    display_info_t display_info = display_init(tx_window_info, SCALE_DEFAULT, OFFSET_X, OFFSET_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
+    calc_info_t calc_info = display_init(tx_window_info, SCALE_DEFAULT, OFFSET_X, OFFSET_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
+    calc_function_t calc_function = choose_calc_function(&config);
 
     clock_t start = clock();
-
-    display_function_t display_function = choose_display_function(&config);
+    int *iters_matrix = (int *) calloc(calc_info.screen_height * calc_info.screen_width, sizeof(int));
 
     for (;;) {
-        if ((clock() - start) / CLOCKS_PER_SEC > config.duration && config.duration > 0) {
-            break;
-        }
+        double frame_start = clock();
 
-        update_display_info(&display_info);
-        printf("FPS %lf\t\t\r", txGetFPS());
+        update_display_info(&calc_info);
 
-        if (display_info.terminate_state) {
+        if (calc_info.terminate_state ||
+            ((clock() - start) / CLOCKS_PER_SEC > config.duration && config.duration > 0)) {
             break;
         }
 
         for (int i = 0; i < config.runs; i++) {
-            display_function(&display_info, config.draw_enable);
+            calc_function(&calc_info, iters_matrix);
         }
+
+        display(&calc_info, iters_matrix, default_color_func);
+
+        double frame_end = clock();
+        double duration = (frame_end - frame_start);
+        printf("FPS %lf\t\t\r", CLOCKS_PER_SEC / duration);
+
     }
+
+    free(iters_matrix);
 
     return 0;
 }

@@ -28,7 +28,7 @@ typedef struct {
     int runs;
 } config_t;
 
-display_function_t choose_display_function(config_t *config);
+calc_function_t choose_calc_function(config_t *config);
 void scan_argv(config_t *config, const int argc, const char *argv[]);
 void opt_data_ctor(opt_data *option, const char *const short_name_src, const char *const long_name_src,
     const char *const fmt_src, void *val_ptr_src);

@@ -5,79 +5,80 @@
 #include "mandelbrot_set/display_funcs.h"
 
 #define min(a, b)  (((a) < (b)) ? (a) : (b))
+#define max(a, b)  (((a) > (b)) ? (a) : (b))
 
-void move_cords(display_info_t *display_info, int dx, int dy) {
-    assert(display_info);
+void move_cords(calc_info_t *calc_info, int dx, int dy) {
+    assert(calc_info);
 
-    display_info->offset_x += dx * display_info->scale;
-    display_info->offset_y += dy * display_info->scale;
+    calc_info->offset_x += dx * calc_info->scale;
+    calc_info->offset_y += dy * calc_info->scale;
 }
 
-void zoom_cords(display_info_t *display_info, double scale, int anch_x, int anch_y) {
-    assert(display_info);
+void zoom_cords(calc_info_t *calc_info, double scale, int anch_x, int anch_y) {
+    assert(calc_info);
 
-    double real_x = display_info->offset_x + anch_x * display_info->scale;
-    double real_y = display_info->offset_y + anch_y * display_info->scale;
+    double real_x = calc_info->offset_x + anch_x * calc_info->scale;
+    double real_y = calc_info->offset_y + anch_y * calc_info->scale;
 
-    double new_scale = display_info->scale * scale;
+    double new_scale = calc_info->scale * scale;
 
-    display_info->offset_x = real_x - anch_x * new_scale;
-    display_info->offset_y = real_y - anch_y * new_scale;
+    calc_info->offset_x = real_x - anch_x * new_scale;
+    calc_info->offset_y = real_y - anch_y * new_scale;
 
-    display_info->scale = new_scale;
+    calc_info->scale = new_scale;
 }
 
-void update_display_info(display_info_t *display_info) {
-    assert(display_info);
+void update_display_info(calc_info_t *calc_info) {
+    assert(calc_info);
 
     if (GetAsyncKeyState(VK_ESCAPE)) {
-        display_info->terminate_state = true;
+        calc_info->terminate_state = true;
         txSleep(KEY_PROC_SLEEP);
     }
 
     if (GetAsyncKeyState(VK_LEFT)) {
-        move_cords(display_info, -CORD_DELTA, 0);
+        move_cords(calc_info, -CORD_DELTA, 0);
         txSleep(KEY_PROC_SLEEP);
     }
 
     if (GetAsyncKeyState(VK_RIGHT)) {
-        move_cords(display_info, CORD_DELTA, 0);
+        move_cords(calc_info, CORD_DELTA, 0);
         txSleep(KEY_PROC_SLEEP);
     }
 
     if (GetAsyncKeyState(VK_UP)) {
-        move_cords(display_info, 0, -CORD_DELTA);
+        move_cords(calc_info, 0, -CORD_DELTA);
         txSleep(KEY_PROC_SLEEP);
     }
 
     if (GetAsyncKeyState(VK_DOWN)) {
-        move_cords(display_info, 0, CORD_DELTA);
+        move_cords(calc_info, 0, CORD_DELTA);
         txSleep(KEY_PROC_SLEEP);
     }
 
     if (GetAsyncKeyState(VK_Z)) {
-        zoom_cords(display_info, SCALE_COEF, display_info->screen_width / 2, display_info->screen_height / 2);
+        zoom_cords(calc_info, SCALE_COEF, calc_info->screen_width / 2, calc_info->screen_height / 2);
         txSleep(KEY_PROC_SLEEP);
     }
     if (GetAsyncKeyState(VK_X)) {
-        zoom_cords(display_info, 1 / SCALE_COEF, display_info->screen_width / 2, display_info->screen_height / 2);
+        zoom_cords(calc_info, 1 / SCALE_COEF, calc_info->screen_width / 2, calc_info->screen_height / 2);
         txSleep(KEY_PROC_SLEEP);
     }
 }
 
-display_info_t display_init(tx_window_info_t tx_window_info, const double scale, const double offset_x, const double offset_y, int screen_width, int screen_height) {
+calc_info_t display_init(tx_window_info_t tx_window_info, const double scale, const double offset_x, const double offset_y, int screen_width, int screen_height) {
 
-    display_info_t display_info = {};
+    calc_info_t calc_info = {};
 
-    display_info.tx_window_info = tx_window_info;
+    calc_info.tx_window_info = tx_window_info;
 
-    display_info.scale          = scale;
-    display_info.offset_x       = offset_x;
-    display_info.offset_y       = offset_y;
-    display_info.screen_width   = screen_width;
-    display_info.screen_height  = screen_height;
+    calc_info.scale          = scale;
+    calc_info.offset_x       = offset_x;
+    calc_info.offset_y       = offset_y;
+    calc_info.screen_width   = screen_width;
+    calc_info.screen_height  = screen_height;
 
-    return display_info;
+    return calc_info;
 }
 
 tx_window_info_t create_tx_window(const int screen_width, const int screen_height) {
@@ -88,30 +89,69 @@ tx_window_info_t create_tx_window(const int screen_width, const int screen_heigh
     return tx_window_info;
 }
 
-void put_canvas_dot(display_info_t *display_info, int ix, int iy, int iterations) {
-    assert(display_info);
+void normalize_color(color_t *color) {
+    assert(color);
 
-    float red_coef     = 0.1f + (float) (iterations) * 0.03f * 0.2f;
-    float green_coef   = 0.2f + (float) (iterations) * 0.03f * 0.3f;
-    float blue_coef    = 0.3f + (float) (iterations) * 0.03f * 0.1f;
+    color->red     = min(color->red, MAX_COLOR_VAL);
+    color->green   = min(color->green, MAX_COLOR_VAL);
+    color->blue    = min(color->blue, MAX_COLOR_VAL);
 
-    RGBQUAD rgb =
-    {   (BYTE) (red_coef * 255),
-        (BYTE) (green_coef * 255),
-        (BYTE) (blue_coef * 255)
-    };
-
-    *((RGBQUAD*) (display_info->tx_window_info.video_mem) + (ix + (display_info->screen_height - iy - 1) * display_info->screen_width)) = rgb;
+    color->red     = max(color->red, MIN_COLOR_VAL);
+    color->green   = max(color->green, MIN_COLOR_VAL);
+    color->blue    = max(color->blue, MIN_COLOR_VAL);
 }
 
-void display_without_optimizations(display_info_t *display_info, bool draw_enable) {
-    assert(display_info);
+color_t default_color_func(int iterations) {
+    color_t color = {};
 
-    for (int iy = 0; iy < display_info->screen_height; iy++) {
-        double y0 = display_info->offset_y + iy * display_info->scale;
+    color.red     = (0.1f + (float) (iterations) * 0.03f * 0.2f) * MAX_COLOR_VAL;
+    color.green   = (0.2f + (float) (iterations) * 0.03f * 0.3f) * MAX_COLOR_VAL;
+    color.blue    = (0.3f + (float) (iterations) * 0.03f * 0.1f) * MAX_COLOR_VAL;
 
-        for (int ix = 0; ix < display_info->screen_width; ix++) {
-            double x0 = display_info->offset_x + ix * display_info->scale;
+    return color;
+}
+
+color_t color_func_1(int iterations) {
+    color_t color = {};
+
+    color.red     = (float) (iterations % 255);
+    color.green   = (float) (255 - iterations % 255);
+    color.blue    = (float) (iterations) * 0.2f * 255;
+
+    return color;
+}
+
+void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_func) {
+    assert(calc_info);
+    assert(iters_matrix);
+
+    for (int iy = 0; iy < calc_info->screen_height; iy++) {
+        for (int ix = 0; ix < calc_info->screen_width; ix++) {
+            int iterations = *(iters_matrix + (ix + (calc_info->screen_height - iy - 1) * calc_info->screen_width));
+
+            color_t color = color_func(iterations);
+            normalize_color(&color);
+
+            RGBQUAD rgb =
+            {   (BYTE) (color.red),
+                (BYTE) (color.green),
+                (BYTE) (color.blue)
+            };
+
+            *((RGBQUAD*) (calc_info->tx_window_info.video_mem) + (ix + (calc_info->screen_height - iy - 1) * calc_info->screen_width)) = rgb;
+        }
+    }
+}
+
+void calc_without_optimizations(calc_info_t *calc_info, int *iters_matrix) {
+    assert(calc_info);
+    assert(iters_matrix);
+
+    for (int iy = 0; iy < calc_info->screen_height; iy++) {
+        double y0 = calc_info->offset_y + iy * calc_info->scale;
+
+        for (int ix = 0; ix < calc_info->screen_width; ix++) {
+            double x0 = calc_info->offset_x + ix * calc_info->scale;
             double x = 0;
             double y = 0;
             double x2 = 0;
@@ -129,23 +169,23 @@ void display_without_optimizations(display_info_t *display_info, bool draw_enabl
 
                 iters++;
             }
-            if (draw_enable) {
-                put_canvas_dot(display_info, ix, iy, iters);
-            }
+
+            *(iters_matrix + (ix + (calc_info->screen_height - iy - 1) * calc_info->screen_width)) = iters;
         }
     }
 }
 
 #define ARR_SZ 4
-void display_with_array_optimization(display_info_t *display_info, bool draw_enable) {
-    assert(display_info);
+void calc_with_array_optimization(calc_info_t *calc_info, int *iters_matrix) {
+    assert(calc_info);
+    assert(iters_matrix);
 
-    for (int iy = 0; iy < display_info->screen_height; iy++) {
-        float y0 = (float) (display_info->offset_y + iy * display_info->scale);
+    for (int iy = 0; iy < calc_info->screen_height; iy++) {
+        float y0 = (float) (calc_info->offset_y + iy * calc_info->scale);
 
-        for (int ix = 0; ix < display_info->screen_width; ix+=ARR_SZ) {
-            float x0 = (float) (display_info->offset_x + ix * display_info->scale);
-            float dx = (float) display_info->scale;
+        for (int ix = 0; ix < calc_info->screen_width; ix+=ARR_SZ) {
+            float x0 = (float) (calc_info->offset_x + ix * calc_info->scale);
+            float dx = (float) calc_info->scale;
 
 
             float x0_arr[ARR_SZ] = {};
@@ -210,28 +250,28 @@ void display_with_array_optimization(display_info_t *display_info, bool draw_ena
                 iters++;
             }
 
-            for (int i = 0; i < ARR_SZ; i++) {
-                if (draw_enable) {
-                    put_canvas_dot(display_info, ix + i, iy, iters_arr[i]);
-                }
 
+            for (int i = 0; i < ARR_SZ; i++) {
+                int x_pixel = min(ix + i, calc_info->screen_width - 1);
+                int y_pixel = (calc_info->screen_height - iy - 1);
+                *(iters_matrix + x_pixel + y_pixel * calc_info->screen_width) = iters_arr[i];
             }
         }
     }
 }
 
 const __m256 stable_radius_vec8 = _mm256_set1_ps(STABLE_RADIUS);
-void display_with_intrinsic_optimization(display_info_t *display_info, bool draw_enable) {
-    assert(display_info);
+void calc_with_intrinsic_optimization(calc_info_t *calc_info, int *iters_matrix) {
+    assert(calc_info);
+    assert(iters_matrix);
 
-
-    for (int iy = 0; iy < display_info->screen_height; iy++) {
-        float y0 = (float)(display_info->offset_y + iy * display_info->scale);
+    for (int iy = 0; iy < calc_info->screen_height; iy++) {
+        float y0 = (float)(calc_info->offset_y + iy * calc_info->scale);
         __m256 y0_vec8 = _mm256_set1_ps(y0);
 
-        for (int ix = 0; ix < display_info->screen_width; ix += 8) {
-            float x0_base = (float)(display_info->offset_x + ix * display_info->scale);
-            float dx = (float)display_info->scale;
+        for (int ix = 0; ix < calc_info->screen_width; ix += 8) {
+            float x0_base = (float)(calc_info->offset_x + ix * calc_info->scale);
+            float dx = (float)calc_info->scale;
 
             __m256 x0_vec8 = _mm256_set_ps(
                 x0_base + 7 * dx, x0_base + 6 * dx, x0_base + 5 * dx, x0_base + 4 * dx,
@@ -281,29 +321,26 @@ void display_with_intrinsic_optimization(display_info_t *display_info, bool draw
             _mm256_storeu_si256((__m256i*)iters_arr8, iters_vec8);
 
             for (int i = 0; i < 8; i++) {
-                if (ix + i >= display_info->screen_width) {
-                    break;
-                }
-                if (draw_enable) {
-                    put_canvas_dot(display_info, ix + i, iy, iters_arr8[i]);
-                }
+                int x_pixel = min(ix + i, calc_info->screen_width - 1);
+                int y_pixel = (calc_info->screen_height - iy - 1);
+                *(iters_matrix + x_pixel + y_pixel * calc_info->screen_width) = iters_arr8[i];
             }
         }
     }
 }
 
-void display_with_intrinsic_optimization_unroll_2(display_info_t *display_info, bool draw_enable) {
-    assert(display_info);
+void calc_with_intrinsic_optimization_unroll_2(calc_info_t *calc_info, int *iters_matrix) {
+    assert(calc_info);
+    assert(iters_matrix);
 
-
-    for (int iy = 0; iy < display_info->screen_height; iy++) {
-        float y0 = (float)(display_info->offset_y + iy * display_info->scale);
+    for (int iy = 0; iy < calc_info->screen_height; iy++) {
+        float y0 = (float)(calc_info->offset_y + iy * calc_info->scale);
         __m256 y0_vec8 = _mm256_set1_ps(y0);
         __m256 y0_vec8_2 = _mm256_set1_ps(y0);
 
-        for (int ix = 0; ix < display_info->screen_width; ix += 16) {
-            float x0_base = (float)(display_info->offset_x + ix * display_info->scale);
-            float dx = (float)display_info->scale;
+        for (int ix = 0; ix < calc_info->screen_width; ix += 16) {
+            float x0_base = (float)(calc_info->offset_x + ix * calc_info->scale);
+            float dx = (float)calc_info->scale;
 
             __m256 x0_vec8 = _mm256_set_ps(
                 x0_base + 7 * dx, x0_base + 6 * dx, x0_base + 5 * dx, x0_base + 4 * dx,
@@ -381,10 +418,13 @@ void display_with_intrinsic_optimization_unroll_2(display_info_t *display_info, 
             _mm256_storeu_si256((__m256i*)iters_arr8_2, iters_vec8_2);
 
             for (int i = 0; i < 8; i++) {
-                if (draw_enable) {
-                    put_canvas_dot(display_info, ix + i, iy, iters_arr8[i]);
-                    put_canvas_dot(display_info, ix + i + 8, iy, iters_arr8_2[i]);
-                }
+                int x_pixel = min(ix + i, calc_info->screen_width - 1);
+                int y_pixel = (calc_info->screen_height - iy - 1);
+                int x_pixel_2 = min(ix + i + 8, calc_info->screen_width - 1);
+                int y_pixel_2 = (calc_info->screen_height - iy - 1);
+
+                *(iters_matrix + x_pixel + y_pixel * calc_info->screen_width) = iters_arr8[i];
+                *(iters_matrix + x_pixel_2 + y_pixel_2 * calc_info->screen_width) = iters_arr8_2[i];
             }
         }
     }
