@@ -28,11 +28,12 @@ void zoom_cords(calc_info_t *calc_info, double scale, int anch_x, int anch_y) {
     calc_info->scale = new_scale;
 }
 
-void update_display_info(calc_info_t *calc_info) {
+void update_calc_info(calc_info_t *calc_info, int *terminate_state) {
     assert(calc_info);
+    assert(terminate_state);
 
     if (GetAsyncKeyState(VK_ESCAPE)) {
-        calc_info->terminate_state = true;
+        *terminate_state = 1;
         txSleep(KEY_PROC_SLEEP);
     }
 
@@ -66,11 +67,8 @@ void update_display_info(calc_info_t *calc_info) {
     }
 }
 
-calc_info_t display_init(tx_window_info_t tx_window_info, const double scale, const double offset_x, const double offset_y, int screen_width, int screen_height) {
-
+calc_info_t calc_info_init(const double scale, const double offset_x, const double offset_y, int screen_width, int screen_height) {
     calc_info_t calc_info = {};
-
-    calc_info.tx_window_info = tx_window_info;
 
     calc_info.scale          = scale;
     calc_info.offset_x       = offset_x;
@@ -111,17 +109,7 @@ color_t default_color_func(int iterations) {
     return color;
 }
 
-color_t color_func_1(int iterations) {
-    color_t color = {};
-
-    color.red     = (float) (iterations % 255);
-    color.green   = (float) (255 - iterations % 255);
-    color.blue    = (float) (iterations) * 0.2f * 255;
-
-    return color;
-}
-
-void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_func) {
+void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_func, void *video_mem) {
     assert(calc_info);
     assert(iters_matrix);
 
@@ -137,7 +125,7 @@ void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_f
                 (BYTE) (color.blue)
             };
 
-            *((RGBQUAD*) (calc_info->tx_window_info.video_mem) + (ix + (calc_info->screen_height - iy - 1) * calc_info->screen_width)) = rgb;
+            *((RGBQUAD*) (video_mem) + (ix + (calc_info->screen_height - iy - 1) * calc_info->screen_width)) = rgb;
         }
     }
 }
@@ -173,6 +161,12 @@ void calc_without_optimizations(calc_info_t *calc_info, int *iters_matrix) {
         }
     }
 }
+
+// FIXME: вынести функции в разные .cpp
+// FIXME: пустые строки
+
+// добавить align 'float x0_arr[ARR_SZ] = {};'
+// FIXME: убрать пустые строки
 
 #define ARR_SZ 4
 void calc_with_array_optimization(calc_info_t *calc_info, int *iters_matrix) {
@@ -317,7 +311,7 @@ void calc_with_intrinsic_optimization(calc_info_t *calc_info, int *iters_matrix)
             }
 
             int iters_arr8[8];
-            _mm256_storeu_si256((__m256i*)iters_arr8, iters_vec8);
+            _mm256_storeu_si256((__m256i*)iters_arr8, iters_vec8); // FIXME: делать store сразу в iters_arr8
 
             for (int i = 0; i < 8; i++) {
                 int x_pixel = min(ix + i, calc_info->screen_width - 1);

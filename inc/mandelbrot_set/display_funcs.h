@@ -4,10 +4,8 @@
 #include <string.h>
 #include <immintrin.h>
 
-const int MAX_ITERATIONS_CNT = 500;
-
+const int MAX_ITERATIONS_CNT = 255;
 const double STABLE_RADIUS = 16;
-
 
 const int VK_Z = 0x5A;
 const int VK_X = 0x58;
@@ -26,16 +24,11 @@ typedef struct {
 } tx_window_info_t;
 
 typedef struct {
-    bool terminate_state;
-
-    tx_window_info_t tx_window_info;
-
     double offset_x, offset_y;
     double scale;
 
     int screen_width;
     int screen_height;
-
 } calc_info_t;
 
 typedef struct {
@@ -48,20 +41,19 @@ typedef void (*calc_function_t) (calc_info_t *calc_info, int *iters_matrix);
 typedef color_t (*color_function_t) (int iterations);
 
 color_t default_color_func(int iterations);
-color_t color_func_1(int iterations);
 
 void normalize_color(color_t *color);
 
 void move_cords(calc_info_t *calc_info, int dx, int dy);
 void zoom_cords(calc_info_t *calc_info, double scale, int anch_x, int anch_y);
 
-void update_display_info(calc_info_t *calc_info);
-calc_info_t display_init(tx_window_info_t tx_window_info, const double scale,
+void update_calc_info(calc_info_t *calc_info, int *terminate_state);
+calc_info_t calc_info_init(const double scale,
     const double x_origin, const double y_origin, int screen_width, int screen_height);
 
 tx_window_info_t create_tx_window(const int screen_width, const int screen_height);
 
-void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_func);
+void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_func, void *video_mem);
 
 void calc_without_optimizations(calc_info_t *calc_info, int *iters_matrix);
 void calc_with_array_optimization(calc_info_t *calc_info, int *iters_matrix);

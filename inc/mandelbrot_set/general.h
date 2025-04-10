@@ -34,9 +34,6 @@ const size_t STR_F_BORDER_SZ = 100;
 #define fprintf_html_black(stream, str_, ...) fprintf(stream, HTML_BLACK str_, ##__VA_ARGS__)
 #define fprintf_html_yel(stream, str_, ...) fprintf(stream, HTML_YEL str_, ##__VA_ARGS__)
 
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
-#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
-
 #define CLEAR_MEMORY(mark) goto mark;
 
 #define FREE(ptr)              \

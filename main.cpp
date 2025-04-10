@@ -3,11 +3,14 @@
 #include <math.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 
 
 #include "mandelbrot_set/display_funcs.h"
 #include "mandelbrot_set/args_proc.h"
+#include "mandelbrot_set/general.h"
 
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 600;
@@ -26,17 +29,23 @@ int main (const int argc, const char *argv[]) {
     if (config.draw_enable) {
         tx_window_info = create_tx_window(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
-    calc_info_t calc_info = display_init(tx_window_info, SCALE_DEFAULT, OFFSET_X, OFFSET_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
+    calc_info_t calc_info = calc_info_init(SCALE_DEFAULT, OFFSET_X, OFFSET_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
     calc_function_t calc_function = choose_calc_function(&config);
 
     clock_t start = clock();
-    int *iters_matrix = (int *) calloc(calc_info.screen_height * calc_info.screen_width, sizeof(int));
+    int *iters_matrix = (int *) _aligned_malloc(calc_info.screen_height * calc_info.screen_width * sizeof(int), 256);
+    if (iters_matrix == NULL) {
+        debug("iters_matrix _aligned_malloc failed\n");
+        return EXIT_FAILURE;
+    }
+
 
     for (;;) {
         double frame_start = clock();
-        update_display_info(&calc_info);
+        int terminate_state = 0;
+        update_calc_info(&calc_info, &terminate_state);
 
-        if (calc_info.terminate_state ||
+        if (terminate_state ||
             ((clock() - start) / CLOCKS_PER_SEC > config.duration && config.duration > 0)) {
             break;
         }
@@ -45,15 +54,14 @@ int main (const int argc, const char *argv[]) {
             calc_function(&calc_info, iters_matrix);
         }
 
-        display(&calc_info, iters_matrix, default_color_func);
+        display(&calc_info, iters_matrix, default_color_func, tx_window_info.video_mem);
 
         double frame_end = clock();
         double duration = (frame_end - frame_start);
-        printf("FPS %lf\t\t\r", CLOCKS_PER_SEC / (float) durations_ticks);
-
+        printf("FPS %lf\t\t\r", CLOCKS_PER_SEC / (float) duration);
     }
 
-    free(iters_matrix);
+    _aligned_free(iters_matrix);
 
     return 0;
 }

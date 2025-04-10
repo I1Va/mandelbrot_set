@@ -1,46 +1,88 @@
-# ifeq ($(origin CC),default) # "CC" Variable has makefile default value. If Makefile launch ocurred without "CC" flag, "CC = c" would be defaultly set.
-# # So we need set value singly
-# 	CC = g++
-# endif
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-# CSRC = main.cpp src/display_funcs.cpp src/args_proc.cpp
+MODE ?= RELEASE
 
-# .PHONY: all build
+WINDOWS=1
 
-# # #================================================TESTING=======================================================
-# TEST_CFLAGS = -DNDEBUG -I./inc -march=native -mtune=native
-# TEST_DIR = .
-# TEST_BUILD_DIR = tests
+ifeq ($(WINDOWS),1)
+	LAUNCH_MKDIR_COM = if not exist "$(subst /,\,$(@D))" mkdir "$(subst /,\,$(@D))"
+else
+	LAUNCH_MKDIR_COM = mkdir -p $(@D)
+endif
 
-# complile_all_versions:
-# #$(CC) $(TEST_CFLAGS) -Og $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/Og_mandelbrot_set.exe
-# 	$(CC) $(TEST_CFLAGS) -O2 $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/O2_mandelbrot_set.exe
-# #$(CC) $(TEST_CFLAGS) -Ofast $(CSRC) -o $(TEST_DIR)/$(TEST_BUILD_DIR)/Ofast_mandelbrot_set.exe
+ifeq ($(MODE),DEBUG)
+	CFLAGS = $(CDEBFLAGS)
+	OUT_O_DIR = debug
+	EXTRA_FLAGS = $(SANITIZER_FLAGS)
+endif
 
-# # -msse4.2 -mavx2
-# #  -march=native -mtune=native
+ifeq ($(origin CC),default)
+	CC = gсс
+endif
 
-# asm_sample:
-# 	gcc -S -O2 -msse4.2 -msse4.1 -mavx2 -DNDEBUG godbolt_samp.cpp
-# #================================================TESTING=======================================================
+ifeq ($(origin CXX),default)
+	CXX = g++
+endif
 
-CC = g++
-OUT_O_DIR = build
-OUTFILE_NAME = benchmark.out
+CFLAGS ?= -O2 -march=native
+
+CDEBFLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations \
+-Wc++14-compat -Wmissing-declarations -Wcast-align -Wcast-qual -Wchar-subscripts -Wconditionally-supported \
+-Wconversion -Wctor-dtor-privacy -Wempty-body -Wfloat-equal -Wformat-nonliteral -Wformat-security \
+-Wformat-signedness -Wformat=2 -Winline -Wlogical-op -Wnon-virtual-dtor -Wopenmp-simd -Woverloaded-virtual\
+-Wpacked -Wpointer-arith -Winit-self -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel \
+-Wstrict-overflow=2 -Wsuggest-attribute=noreturn -Wsuggest-final-methods -Wsuggest-final-types -Wsuggest-override\
+-Wswitch-default -Wswitch-enum -Wsync-nand -Wundef -Wunreachable-code -Wunused -Wuseless-cast -Wvariadic-macros\
+-Wno-literal-suffix -Wno-missing-field-initializers -Wno-narrowing -Wno-old-style-cast -Wno-varargs \
+-Wstack-protector -fcheck-new -fsized-deallocation -fstack-protector -fstrict-overflow -flto-odr-type-merging\
+-fno-omit-frame-pointer -Wlarger-than=8192 -Wstack-usage=8192 -pie -fPIE -Werror=vla
+
+SANITIZER_FLAGS = -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,$\
+integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,$\
+shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
+
+EXTRA_FLAGS =
+LDFLAGS =
+OUT_O_DIR ?= build
+COMMONINC = -I./inc
+SRC = ./src
+
+CSRC = main.cpp src/args_proc.cpp src/display_funcs.cpp
+
+COBJ := $(addprefix $(OUT_O_DIR)/,$(CSRC:.cpp=.o))
+
+DEPS = $(COBJ:.o=.d)
+override CFLAGS += $(COMMONINC)
 
 
-CFLAGS = -I./inc -march=native -mtune=native
+.PHONY: all
 
-CSRC := src/args_proc.cpp src/display_funcs.cpp benchmarks.cpp
-COBJ = $(addprefix $(OUT_O_DIR)/,$(CSRC:.cpp=.o))
+OUTFILE_NAME = mandelbrot_set.out
 
 all: $(OUT_O_DIR)/$(OUTFILE_NAME)
-	$(OUT_O_DIR)/$(OUTFILE_NAME) -d=1
-	@del /S $(OUT_O_DIR)\*.out $(OUT_O_DIR)\*.o
 
 $(OUT_O_DIR)/$(OUTFILE_NAME): $(COBJ)
-	$(CC) $^ -o $@
-
+	@$(CXX) $^ -o $@ $(LDFLAGS) $(EXTRA_FLAGS)
 
 $(COBJ) : $(OUT_O_DIR)/%.o : %.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+	@$(LAUNCH_MKDIR_COM)
+	@$(CXX) $(CFLAGS) -c $< -o $@
+
+$(DEPS) : $(OUT_O_DIR)/%.d : %.cpp
+	@$(LAUNCH_MKDIR_COM)
+	@$(CXX) -E $(CFLAGS) $< -MM -MT $(@:.d=.o) > $@
+
+
+launch:
+	$(OUT_O_DIR)/$(OUTFILE_NAME) -O=unroll_2
+
+.PHONY: clean
+clean:
+	@rmdir /Q /S $(OUT_O_DIR)
+
+NODEPS = clean
+
+
+ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
+include $(DEPS)
+endif
