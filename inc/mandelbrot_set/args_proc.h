@@ -3,8 +3,7 @@
 
 #include <string.h>
 #include <stdio.h>
-
-#include "mandelbrot_set\display_funcs.h"
+#include "mandelbrot_set\control_funcs.h"
 
 const size_t MAX_OPT_NAME_SZ = 64;
 const size_t MAX_CONFIG_NAME_SIZE = 64;

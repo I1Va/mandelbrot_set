@@ -8,7 +8,7 @@
 #include <time.h>
 
 
-#include "mandelbrot_set/display_funcs.h"
+#include "mandelbrot_set/control_funcs.h"
 #include "mandelbrot_set/args_proc.h"
 #include "mandelbrot_set/general.h"
 
@@ -38,7 +38,6 @@ int main (const int argc, const char *argv[]) {
         debug("iters_matrix _aligned_malloc failed\n");
         return EXIT_FAILURE;
     }
-
 
     for (;;) {
         double frame_start = clock();

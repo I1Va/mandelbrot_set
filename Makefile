@@ -24,7 +24,7 @@ ifeq ($(origin CXX),default)
 	CXX = g++
 endif
 
-CFLAGS ?= -O2 -march=native
+CFLAGS ?= -O2 -march=native -mtune=native -DNDEBUG
 
 CDEBFLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations \
 -Wc++14-compat -Wmissing-declarations -Wcast-align -Wcast-qual -Wchar-subscripts -Wconditionally-supported \
@@ -47,7 +47,7 @@ OUT_O_DIR ?= build
 COMMONINC = -I./inc
 SRC = ./src
 
-CSRC = main.cpp src/args_proc.cpp src/display_funcs.cpp
+CSRC = main.cpp src/args_proc.cpp src/control_funcs.cpp $(wildcard src/calc_funcs/*.cpp)
 
 COBJ := $(addprefix $(OUT_O_DIR)/,$(CSRC:.cpp=.o))
 
@@ -74,7 +74,7 @@ $(DEPS) : $(OUT_O_DIR)/%.d : %.cpp
 
 
 launch:
-	$(OUT_O_DIR)/$(OUTFILE_NAME) -O=unroll_2
+	$(OUT_O_DIR)/$(OUTFILE_NAME) -O=array
 
 .PHONY: clean
 clean:

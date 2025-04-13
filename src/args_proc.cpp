@@ -8,8 +8,8 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "mandelbrot_set\args_proc.h"
-#include "mandelbrot_set\general.h"
+#include "mandelbrot_set/args_proc.h"
+#include "mandelbrot_set/general.h"
 
 calc_function_t choose_calc_function(config_t *config) {
     if (strcmp(config->optimization, "array") == 0) {

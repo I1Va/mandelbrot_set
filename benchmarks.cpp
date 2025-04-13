@@ -6,7 +6,7 @@
 #include <time.h>
 
 
-#include "mandelbrot_set/display_funcs.h"
+#include "mandelbrot_set/control_funcs.h"
 #include "mandelbrot_set/args_proc.h"
 
 const int SCREEN_WIDTH = 1000;
