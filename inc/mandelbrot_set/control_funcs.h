@@ -27,7 +27,7 @@ color_t default_color_func(int iterations);
 void normalize_color(color_t *color);
 tx_window_info_t create_tx_window(const int screen_width, const int screen_height);
 
-void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_func, void *video_mem);
+void display(const calc_info_t *calc_info, int *iters_matrix, color_function_t color_func, void *video_mem);
 void move_cords(calc_info_t *calc_info, int dx, int dy);
 void zoom_cords(calc_info_t *calc_info, double scale, int anch_x, int anch_y);
 void update_calc_info(calc_info_t *calc_info, int *terminate_state);

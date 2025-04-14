@@ -21,7 +21,7 @@ int main (const int argc, const char *argv[]) {
     config.draw_enable = 1;
     scan_argv(&config, argc, argv);
 
-    calc_info_t calc_info = display_init({}, SCALE_DEFAULT, OFFSET_X, OFFSET_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
+    calc_info_t calc_info = calc_info_init(SCALE_DEFAULT, OFFSET_X, OFFSET_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
     calc_function_t calc_function = choose_calc_function(&config);
 
     clock_t start = clock();

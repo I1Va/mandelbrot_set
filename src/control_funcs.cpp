@@ -107,7 +107,7 @@ color_t default_color_func(int iterations) {
     return color;
 }
 
-void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_func, void *video_mem) {
+void display(const calc_info_t *calc_info, int *iters_matrix, color_function_t color_func, void *video_mem) {
     assert(calc_info);
     assert(iters_matrix);
 
@@ -127,11 +127,3 @@ void display(calc_info_t *calc_info, int *iters_matrix, color_function_t color_f
         }
     }
 }
-
-// FIXME: вынести функции в разные .cpp
-// FIXME: пустые строки
-
-// добавить align 'float x0_arr[ARR_SZ] = {};'
-// FIXME: убрать пустые строки
-
-

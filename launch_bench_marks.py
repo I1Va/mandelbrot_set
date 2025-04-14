@@ -1,6 +1,5 @@
 import os, math
 import matplotlib.pyplot as plt
-import pandas as pd
 
 def generate_benchmark_makefile(compile_flags, launch_flags):
     content = f'CC = g++\n\
@@ -10,7 +9,7 @@ OUTFILE_NAME = benchmark.out\n\
 LAUNCH_FLAGS = {launch_flags}\n\
 CFLAGS = -I./inc -march=native {compile_flags}\n\
 \n\
-CSRC := src/args_proc.cpp src/display_funcs.cpp benchmarks.cpp\n\
+CSRC = benchmarks.cpp src/args_proc.cpp src/control_funcs.cpp $(wildcard src/calc_funcs/*.cpp)\n\
 COBJ = $(addprefix $(OUT_O_DIR)/,$(CSRC:.cpp=.o))\n\
 \n\
 all: $(OUT_O_DIR)/$(OUTFILE_NAME)\n\

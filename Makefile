@@ -1,8 +1,6 @@
-ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-
 MODE ?= RELEASE
 
-WINDOWS=1
+WINDOWS?=1
 
 ifeq ($(WINDOWS),1)
 	LAUNCH_MKDIR_COM = if not exist "$(subst /,\,$(@D))" mkdir "$(subst /,\,$(@D))"
@@ -17,7 +15,7 @@ ifeq ($(MODE),DEBUG)
 endif
 
 ifeq ($(origin CC),default)
-	CC = gсс
+	CC = gcc
 endif
 
 ifeq ($(origin CXX),default)
@@ -51,11 +49,12 @@ CSRC = main.cpp src/args_proc.cpp src/control_funcs.cpp $(wildcard src/calc_func
 
 COBJ := $(addprefix $(OUT_O_DIR)/,$(CSRC:.cpp=.o))
 
-DEPS = $(COBJ:.o=.d)
+DEPS := $(COBJ:.o=.d)
 override CFLAGS += $(COMMONINC)
 
 
 .PHONY: all
+NODEPS = clean
 
 OUTFILE_NAME = mandelbrot_set.out
 
@@ -74,13 +73,11 @@ $(DEPS) : $(OUT_O_DIR)/%.d : %.cpp
 
 
 launch:
-	$(OUT_O_DIR)/$(OUTFILE_NAME) -O=array
+	$(OUT_O_DIR)/$(OUTFILE_NAME) -O=unroll_2
 
 .PHONY: clean
 clean:
 	@rmdir /Q /S $(OUT_O_DIR)
-
-NODEPS = clean
 
 
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))

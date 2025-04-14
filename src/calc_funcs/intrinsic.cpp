@@ -3,32 +3,16 @@
 #include "mandelbrot_set/calc_funcs.h"
 #include "mandelbrot_set/general.h"
 
-#define INITIALIZE_M256_VECTORS(x_vec8, y_vec8, x2_vec8, y2_vec8, xy_vec8, abs_vec8)    \
-    __m256 x_vec8    = _mm256_setzero_ps();                                             \
-    __m256 y_vec8    = _mm256_setzero_ps();                                             \
-    __m256 x2_vec8   = _mm256_setzero_ps();                                             \
-    __m256 y2_vec8   = _mm256_setzero_ps();                                             \
-    __m256 xy_vec8   = _mm256_setzero_ps();                                             \
-    __m256 abs_vec8  = _mm256_setzero_ps();
-
-#define CALCULATE_M256_VECTORS(x_vec8, y_vec8, x2_vec8, y2_vec8, xy_vec8, abs_vec8)     \
-    x2_vec8     = _mm256_mul_ps(x_vec8, x_vec8);                                        \
-    y2_vec8     = _mm256_mul_ps(y_vec8, y_vec8);                                        \
-    abs_vec8    = _mm256_add_ps(x2_vec8, y2_vec8);                                      \
-                                                                                        \
-    xy_vec8     = _mm256_mul_ps(x_vec8, y_vec8);                                        \
-                                                                                        \
-    x2_vec8     = _mm256_sub_ps(x2_vec8, y2_vec8);                                      \
-    x_vec8      = _mm256_add_ps(x2_vec8, x0_vec8);                                      \
-    xy_vec8     = _mm256_add_ps(xy_vec8, xy_vec8);                                      \
-    y_vec8      = _mm256_add_ps(xy_vec8, y0_vec8);                                      \
-                                                                                        \
-    x_vec8      = _mm256_min_ps(x_vec8, stable_radius_vec8);                            \
-    y_vec8      = _mm256_min_ps(y_vec8, stable_radius_vec8);
-
 static const __m256 stable_radius_vec8 = _mm256_set1_ps(STABLE_RADIUS);
 
-void calc_with_intrinsic_optimization(calc_info_t *calc_info, int *iters_matrix) {
+inline static void write_dot_iters_m256i_vector_to_matrix(const calc_info_t *calc_info, int *iters_matrix,
+                                                    const int ix, const int iy, __m256i vec) {
+
+    int y_offset = (calc_info->screen_height - iy - 1) * calc_info->screen_width;
+    _mm256_store_si256((__m256i*) (iters_matrix + y_offset + ix), vec);
+}
+
+void calc_with_intrinsic_optimization(const calc_info_t *calc_info, int *iters_matrix) {
     assert(calc_info);
     assert(iters_matrix);
 
@@ -44,13 +28,30 @@ void calc_with_intrinsic_optimization(calc_info_t *calc_info, int *iters_matrix)
                 x0_base + 3 * dx, x0_base + 2 * dx, x0_base + 1 * dx, x0_base
             );
 
-            INITIALIZE_M256_VECTORS(x_vec8, y_vec8, x2_vec8, y2_vec8, xy_vec8, abs_vec8)
+            __m256 x_vec8    = _mm256_setzero_ps();
+            __m256 y_vec8    = _mm256_setzero_ps();
+            __m256 x2_vec8   = _mm256_setzero_ps();
+            __m256 y2_vec8   = _mm256_setzero_ps();
+            __m256 xy_vec8   = _mm256_setzero_ps();
+            __m256 abs_vec8  = _mm256_setzero_ps();
             __m256i dots_states_vec8 = _mm256_set1_epi32(1);
             __m256i iters_vec8 = _mm256_setzero_si256();
 
             int iters = 0;
             while (iters < MAX_ITERATIONS_CNT) {
-                CALCULATE_M256_VECTORS(x_vec8, y_vec8, x2_vec8, y2_vec8, xy_vec8, abs_vec8)
+                x2_vec8     = _mm256_mul_ps(x_vec8, x_vec8);
+                y2_vec8     = _mm256_mul_ps(y_vec8, y_vec8);
+                abs_vec8    = _mm256_add_ps(x2_vec8, y2_vec8);
+
+                xy_vec8     = _mm256_mul_ps(x_vec8, y_vec8);
+
+                x2_vec8     = _mm256_sub_ps(x2_vec8, y2_vec8);
+                x_vec8      = _mm256_add_ps(x2_vec8, x0_vec8);
+                xy_vec8     = _mm256_add_ps(xy_vec8, xy_vec8);
+                y_vec8      = _mm256_add_ps(xy_vec8, y0_vec8);
+
+                x_vec8      = _mm256_min_ps(x_vec8, stable_radius_vec8);
+                y_vec8      = _mm256_min_ps(y_vec8, stable_radius_vec8);
 
                 __m256 cmp_res_vec8 = _mm256_cmp_ps(abs_vec8, stable_radius_vec8, _CMP_LT_OS);
                 dots_states_vec8 = _mm256_castps_si256(cmp_res_vec8);
@@ -61,8 +62,7 @@ void calc_with_intrinsic_optimization(calc_info_t *calc_info, int *iters_matrix)
                 iters++;
             }
 
-            int y_offset = (calc_info->screen_height - iy - 1) * calc_info->screen_width;
-            _mm256_storeu_si256((__m256i*) (iters_matrix + y_offset + ix), iters_vec8);
+            write_dot_iters_m256i_vector_to_matrix(calc_info, iters_matrix, ix, iy, iters_vec8);
         }
     }
 }

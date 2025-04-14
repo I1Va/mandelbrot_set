@@ -3,8 +3,16 @@
 #include "mandelbrot_set/calc_funcs.h"
 #include "mandelbrot_set/general.h"
 
+inline static void write_dot_iters_m256i_vector_to_matrix(const calc_info_t *calc_info, int *iters_matrix,
+                                                    const int ix, const int iy, __m256i vec) {
+
+    int y_offset = (calc_info->screen_height - iy - 1) * calc_info->screen_width;
+    _mm256_store_si256((__m256i*) (iters_matrix + y_offset + ix), vec);
+}
+
 const __m256 stable_radius_vec8 = _mm256_set1_ps(STABLE_RADIUS);
-void calc_with_intrinsic_optimization_unroll_2(calc_info_t *calc_info, int *iters_matrix) {
+
+void calc_with_intrinsic_optimization_unroll_2(const calc_info_t *calc_info, int *iters_matrix) {
     assert(calc_info);
     assert(iters_matrix);
 
@@ -89,18 +97,11 @@ void calc_with_intrinsic_optimization_unroll_2(calc_info_t *calc_info, int *iter
             int iters_arr8[8] = {};
             int iters_arr8_2[8] = {};
 
-            _mm256_storeu_si256((__m256i*)iters_arr8, iters_vec8);
-            _mm256_storeu_si256((__m256i*)iters_arr8_2, iters_vec8_2);
+            _mm256_store_si256((__m256i*)iters_arr8, iters_vec8);
+            _mm256_store_si256((__m256i*)iters_arr8_2, iters_vec8_2);
 
-            for (int i = 0; i < 8; i++) {
-                int x_pixel = min(ix + i, calc_info->screen_width - 1);
-                int y_pixel = (calc_info->screen_height - iy - 1);
-                int x_pixel_2 = min(ix + i + 8, calc_info->screen_width - 1);
-                int y_pixel_2 = (calc_info->screen_height - iy - 1);
-
-                *(iters_matrix + x_pixel + y_pixel * calc_info->screen_width) = iters_arr8[i];
-                *(iters_matrix + x_pixel_2 + y_pixel_2 * calc_info->screen_width) = iters_arr8_2[i];
-            }
+            write_dot_iters_m256i_vector_to_matrix(calc_info, iters_matrix, ix, iy, iters_vec8);
+            write_dot_iters_m256i_vector_to_matrix(calc_info, iters_matrix, ix + 8, iy, iters_vec8_2);
         }
     }
 }

@@ -16,11 +16,11 @@ typedef struct {
     int screen_height;
 } calc_info_t;
 
-typedef void (*calc_function_t) (calc_info_t *calc_info, int *iters_matrix);
+typedef void (*calc_function_t) (const calc_info_t *calc_info, int *iters_matrix);
 
-void calc_without_optimizations(calc_info_t *calc_info, int *iters_matrix);
-void calc_with_array_optimization(calc_info_t *calc_info, int *iters_matrix);
-void calc_with_intrinsic_optimization(calc_info_t *calc_info, int *iters_matrix);
-void calc_with_intrinsic_optimization_unroll_2(calc_info_t *calc_info, int *iters_matrix);
+void calc_without_optimizations(const calc_info_t *calc_info, int *iters_matrix);
+void calc_with_array_optimization(const calc_info_t *calc_info, int *iters_matrix);
+void calc_with_intrinsic_optimization(const calc_info_t *calc_info, int *iters_matrix);
+void calc_with_intrinsic_optimization_unroll_2(const calc_info_t *calc_info, int *iters_matrix);
 
 #endif // CALC_FUNCS_H
